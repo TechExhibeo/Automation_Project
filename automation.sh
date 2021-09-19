@@ -24,7 +24,7 @@ install_apache() {
                 echo -e ${blu}"Installing Apache web server..."${txtrst}
                 sudo apt-get install apache2 -y
                 wait
-		echo -e ${grn}"Apache web server is installed successfully."${txtrst}
+                echo -e ${grn}"Apache web server is installed successfully."${txtrst}
         else
                 echo -e ${grn}"Apache web server already installed."${txtrst}
         fi
@@ -76,9 +76,33 @@ upload_tar_archive() {
         echo -e ${blu}"Uploading archives to S3..."${txtrst}
         aws s3 cp /tmp/$myname-httpd-logs-$timestamp.tar s3://$s3_bucket/$myname-httpd-logs-$timestamp.tar
 }
+book_keeping_logs() {
+        inventory_file="/var/www/html/inventory.html"
+        if [ -f "$inventory_file" ]; then
+                echo -e ${grn}"$inventory_file file already exists."${txtrst}
+        else
+                echo -e ${blu}"Creating $inventory_file placeholder file..."${txtrst}
+                echo "<b>Log Type &nbsp;&nbsp;&nbsp;&nbsp; Date Created &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Type &nbsp;&nbsp;&nbsp;&nbsp; Size</b><br>" > $inventory_file
+        fi
+        archive_size=`du -hs /tmp/$myname-httpd-logs-$timestamp.tar | awk  '{print $1}'`
+        echo "<br>httpd-logs &nbsp;&nbsp;&nbsp; ${timestamp} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; tar &nbsp;&nbsp;&nbsp; ${archive_size}" >> $inventory_file
+        echo -e ${grn}"Inventory File Written with Archive Logs details."${txtrst}
+}
+cron_job() {
+        cron_job_file="/etc/cron.d/automation"
+        if [ -f "$cron_job_file" ]; then
+            echo -e ${grn}"$cron_job_file already exists."${txtrst}
+        else
+                echo -e ${blu}"Creating $cron_job_file file..."${txtrst}
+                echo "10 1 * * * root bash /root/Automation_Project/automation.sh" > $cron_job_file
+                echo -e ${grn}"$cron_job_file cron job file created."${txtrst}
+        fi
+}
 update_repos_and_packages
 install_apache
 start_apache
 enable_apache
 install_awscli
 upload_tar_archive
+book_keeping_logs
+cron_job
