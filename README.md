@@ -10,3 +10,5 @@ Automation script to peform following:
 - Create archive of Apache Access and Error Logs in tar format stored in /var/log/apache2 direcotry and store archive in /tmp directory.
 - Install AWS CLI package if its missing in the system.
 - Run AWS CLI command to copy tar archive to S3 Bucket.
+- Create Book Keeping inventory file and dump log details.
+- Create cron job to run this script everyday.
